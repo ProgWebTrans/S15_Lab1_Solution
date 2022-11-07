@@ -1,0 +1,18 @@
+﻿@using PresseMots_DataModels.Entities
+@model Story
+  
+@{
+}
+
+@foreach (var item in @Model.StoryTags)
+{
+ 
+
+    <span class="badge badge-secondary" >@item.Tag.Name    &nbsp;&nbsp;<a   class="badge badge-danger badge-pill" asp-action="Delete" asp-controller="StoryTags" asp-route-id="@item.Id" >&nbsp;×&nbsp;</a> </span>
+
+     
+        
+
+    
+
+} 

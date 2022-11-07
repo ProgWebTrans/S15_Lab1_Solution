@@ -1,0 +1,73 @@
+@model UserProfileViewModel
+
+@{
+    ViewData["Title"] = @Locals["Details"];
+}
+
+<form id="searchForm" method="post" asp-action="DetailsSearch" class="form-inline">
+
+
+       <input type="hidden" asp-for="UserId" />
+    
+
+    <input type="hidden" asp-for="AuthoredOpened" />
+    
+    <input type="hidden" asp-for="LikedStoriesOpened" />
+    
+    <input type="hidden" asp-for="SharedStoriesOpened" />
+    
+    <input type="hidden" asp-for="LikeableStoriesOpened" />
+
+
+                <span asp-validation-for="SearchTerm" class="text-danger"></span>
+
+            <div class="input-group mb-3">
+                 <input asp-for="SearchTerm" class="form-control" />
+                   <div class="input-group-append">
+                        <button type="submit" class="btn btn-outline-primary" >@Locals["Search"]</button>
+                    </div>
+            </div>
+
+  
+
+
+</form>
+
+
+<h1>  @Html.DisplayFor(model => model.UserNameEmail)</h1>
+
+
+
+
+<partial name="_TitleList" model="@Model.AuthoredStories" view-data="ViewData" view-data-Title="@("Authored Stories")" view-data-hide="Model.AuthoredOpened"  view-data-className="@nameof(Model.AuthoredOpened)" />
+<partial name="_TitleList" model="@Model.LikedStories" view-data="ViewData" view-data-Title="@("Liked Stories")" view-data-hide="Model.LikedStoriesOpened" view-data-className="@nameof(Model.LikedStoriesOpened)"/>
+<partial name="_TitleList" model="@Model.SharedStories" view-data="ViewData" view-data-Title="@("Shared Stories")" view-data-hide="Model.SharedStoriesOpened" view-data-className="@nameof(Model.SharedStoriesOpened)"/>
+<partial name="_TitleList" model="@Model.LikeableStories" view-data="ViewData" view-data-Title="@("Likeable Stories")" view-data-hide="Model.LikeableStoriesOpened" view-data-className="@nameof(Model.LikeableStoriesOpened)"/>
+
+
+
+
+<div>
+    <a asp-action="Edit" asp-route-id="@Model?.UserId">@Locals["Edit"]</a> |
+    <a asp-action="Index">@Locals["Back to List"]</a>
+</div>
+
+
+
+@section Scripts{
+<script>
+
+$(".card-title").click((evt) => {
+
+     $(evt.currentTarget.parentElement).toggleClass("hide");
+    var hidden = $(evt.currentTarget.parentElement).hasClass("hide");
+    var className = $(evt.currentTarget).parents(".card")[0].className.replace("card","").trim();
+    $("input[name="+className+"]", "#searchForm").val(!hidden);
+
+
+
+});
+
+</script>
+
+}

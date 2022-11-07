@@ -1,0 +1,108 @@
+@using System.Globalization
+@model CommentViewModel
+
+@{
+    ViewData["Title"] = @Locals["Comments"];
+}
+
+<h1>@Locals["Comments from:"]  </h1>
+
+
+<div class="card">
+    <div class="card-body">
+        <div class="card-title"><h2>@Model.ShortTitle</h2></div>
+        <div class="card-text">
+            @Model.ShortStory (@Model.WordCount @Locals["mots"])
+            <a asp-action="Index" asp-controller="Stories" asp-route-id="@Model.StoryId"> @Locals["Read the story"]</a>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+
+
+
+
+
+@foreach (var item in Model.Comments)
+{
+    <table class="table table-bordered">
+
+        <tbody>
+            <tr>
+                <th style="width:30px;">
+                    @Html.DisplayNameFor(model => item.Email)
+                </th>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td style="width:150px;" rowspan="@(item.Rating==null?"3":"4")">
+                    <div>
+                        <a asp-action="Delete" asp-route-id="@item.Id">@Locals["Delete"]</a>
+
+                    </div>
+                    <div> <a asp-action="Edit" asp-route-id="@item.Id">@Locals["Edit"]</a> </div>
+
+
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => item.DisplayName)
+                </th>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DisplayName)
+                </td>
+            </tr>
+            <tr>
+                <th style="white-space:pre-wrap">@Html.DisplayNameFor(model => item.Content)
+                </th>
+                <td>                                           
+
+                    <div>@Html.DisplayFor(modelItem => item.Content)</div>
+                </td>
+
+
+            </tr>
+@if ((item.Rating) != null) {            <tr>
+                  <th >@Html.DisplayNameFor(model => item.Rating)</th>
+                   <td>
+                       <div style="position:relative">
+<div class="my-rating" data-rating="@item.Rating.Value.ToString("F2",new CultureInfo("en-US"))"></div>
+
+                       </div>
+                       </td>
+
+            </tr>
+
+
+}
+        </tbody>
+    </table>
+
+
+}
+
+<a asp-action="Create" asp-route-storyId="@Model.StoryId">@Locals["New comment"]</a>
+
+
+@section Scripts{
+
+<script>
+
+$(".my-rating").starRating({
+  totalStars: 5,
+  starShape: 'rounded',
+  starSize: 20,
+  emptyColor: 'lightgray',
+  hoverColor: 'salmon',
+  activeColor: 'crimson',
+  useGradient: false,
+  readOnly:true
+});
+
+</script>
+
+}
+

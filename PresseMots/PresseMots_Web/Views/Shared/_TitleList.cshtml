@@ -1,0 +1,38 @@
+﻿@model IEnumerable<UserProfileStoryViewModel>
+@{
+    var hideClass = ViewData["hide"] as bool? == false ? "hide" : "";
+}
+    <div class="card @(ViewData["className"]?.ToString())"  style="width: 100%; background:#fffcf2; cursor:pointer">
+  <div class="card-body @(hideClass)">
+    <h5 class="card-title">@Locals[ViewData["Title"]?.ToString()]<span class="opened-symbol"></span></h5>
+
+@if (Model.Any())
+{
+
+<div class="alert ">
+    
+    @foreach(var item in Model)
+    {        
+        <a class="badge badge-secondary" asp-action="Index" asp-controller="Stories" asp-route-id="@item.Id">@item.Title</a>
+    }
+    
+ 
+
+</div>    
+
+}else{
+
+
+<div class="alert alert-danger">
+    @Locals["No story found"]
+</div>
+
+}
+   
+  </div>
+</div>
+
+
+
+<br/>
+

@@ -1,0 +1,65 @@
+@using Vereyon.Web
+@model IEnumerable<PresseMots_DataModels.Entities.Story>
+
+@{
+    ViewData["Title"] = @Locals["Index"];
+    var sanitizer = HtmlSanitizer.SimpleHtml5Sanitizer();
+     sanitizer.SanitizeCssClasses = false;
+}
+
+
+
+
+        @foreach (var item in Model)
+        {
+        <div class="card">
+            <div class="card-body">
+                <div class="card-title">
+                    <h2> @Html.DisplayFor(modelItem => item.Title) @Locals["par"]  <a asp-action="Details" asp-route-id="@item.OwnerId" asp-controller="Users">@Html.DisplayFor(modelItem => item.Owner.Username)</a></h2>
+
+                    @if (item.PublishTime != null)
+                    {
+
+                        <div class="badge badge-light">
+                            @Locals["Published on"] @Html.DisplayFor(modelItem => item.PublishTime)
+                        </div>
+                    }
+
+                </div>
+                <div class="card-text" >
+                   <partial name="_tags" model="item"  /><hr/>
+
+                            @Html.Raw(sanitizer.Sanitize(item.Content ?? string.Empty))
+                </div>
+                <div class="panel-footer">
+
+                    <div class="badge badge-info">
+                        @Locals["Created on"] @Html.DisplayFor(modelItem => item.CreationTime)
+                    </div>
+                    @if (item.CreationTime != null)
+                    {
+                        <div class="badge badge-dark">
+                            @Locals["Edit on"] @Html.DisplayFor(modelItem => item.CreationTime)
+                        </div>
+
+                    }
+
+
+
+                    <hr />
+                    <a asp-action="Index" asp-route-storyId="@item.Id" asp-controller="Comments">@item.Comments.Where(x => !x.Hidden).Count() @Locals["comment{0}",@item.Comments.Where(x => !x.Hidden).Count()<=1?"":"s"]</a> |
+                    <a asp-action="Edit" asp-route-id="@item.Id">@Locals["Edit"]</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">@Locals["Delete"]</a> |
+                    <a asp-action="Create" asp-controller="StoryTags" asp-route-storyId="@item.Id" >@Locals["+ tag"]</a>
+                </div>
+            </div>
+        </div>
+        <br/>
+
+
+       }
+
+
+<p>
+    <a asp-action="Create">@Locals["New story"]</a>
+</p>
