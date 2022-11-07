@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using PresseMots_DataAccess.Context;
 using PresseMots_DataModels.Entities;
 using PresseMots_Web.Models;
@@ -14,10 +15,12 @@ namespace PresseMots_Web.Controllers
     public class UsersController : Controller
     {
         private readonly PresseMotsDbContext _context;
+        private readonly IStringLocalizer<UsersController> _localizer;
 
-        public UsersController(PresseMotsDbContext context)
+        public UsersController(PresseMotsDbContext context, IStringLocalizer<UsersController> localizer)
         {
             _context = context;
+            _localizer=localizer;
         }
 
         // GET: Users
@@ -105,7 +108,6 @@ namespace PresseMots_Web.Controllers
         
         
         }
-
         // GET: Users/Create
         public IActionResult Create()
         {
@@ -117,11 +119,33 @@ namespace PresseMots_Web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Username,Email,Password")] User user)
+        public async Task<IActionResult> Create([Bind("Id,Username,Email,Password,ConfirmPassword")] AddUserViewModel user)
         {
+
+
+            var result = Zxcvbn.Core.EvaluatePassword(user.Password);
+            if (result.Score < 3)
+            {
+
+                ModelState.AddModelError("Password", _localizer["Passwords are not strong enough"]);
+
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(user);
+                var newUser = new User()
+                {
+                    Id = 0,
+                    Username = user.Username,
+                    Email = user.Email,
+                    Password = user.Password
+
+                };
+
+
+
+
+                _context.Add(newUser);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -136,8 +160,8 @@ namespace PresseMots_Web.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var user = new EditUserViewModel(await _context.Users.FindAsync(id));
+            if (user.Id == null)
             {
                 return NotFound();
             }
@@ -149,23 +173,44 @@ namespace PresseMots_Web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Username,Email,Password")] User user)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Username,Email,OldPassword,Password,ConfirmPassword")] EditUserViewModel user)
         {
             if (id != user.Id)
             {
                 return NotFound();
             }
 
+            var userFromDb = this._context.Users.Find(user.Id.Value);
+
+            if (user.OldPassword != userFromDb?.Password)
+            {
+
+                ModelState.AddModelError("OldPassword", _localizer["Old password is not validated"]);
+
+            }
+
+            var result = Zxcvbn.Core.EvaluatePassword(user.Password);
+            if (result.Score < 3)
+            {
+
+                ModelState.AddModelError("Password", _localizer["Passwords are not strong enough"]);
+
+            }
+
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(user);
+                    userFromDb.Username = user.Username;
+                    userFromDb.Email = user.Email;
+                    userFromDb.Password = user.Password;
+
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UserExists(user.Id))
+                    if (!UserExists(user.Id.Value))
                     {
                         return NotFound();
                     }
