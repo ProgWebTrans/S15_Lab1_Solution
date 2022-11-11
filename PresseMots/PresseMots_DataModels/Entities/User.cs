@@ -20,6 +20,7 @@ namespace PresseMots_DataModels.Entities
         [Display(Name="Username")] public string Username { get; set; }
         [Display(Name="Email")] public string Email { get; set; }
         [Display(Name="Password")] public string? Password { get; set; }
+        [Display(Name = "Salt")] public string? Salt { get; set; }
 
         [Display(Name="Stories")] public virtual List<Story> Stories { get; set; }
         [Display(Name="Likes")] public virtual List<Like> Likes { get; set; }

@@ -9,6 +9,8 @@ using Microsoft.Extensions.Localization;
 using PresseMots_DataAccess.Context;
 using PresseMots_DataModels.Entities;
 using PresseMots_Web.Models;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using System.Security.Cryptography;
 
 namespace PresseMots_Web.Controllers
 {
@@ -130,15 +132,29 @@ namespace PresseMots_Web.Controllers
                 ModelState.AddModelError("Password", _localizer["Passwords are not strong enough"]);
 
             }
-
             if (ModelState.IsValid)
-            {
+            {            
+                
+                
+                byte[] salt = RandomNumberGenerator.GetBytes(128 / 8); // divide by 8 to convert bits to bytes
+                string saltStr = Convert.ToBase64String(salt);
+            var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                                password: user.Password,
+                                salt: salt,
+                                prf: KeyDerivationPrf.HMACSHA512,
+                                iterationCount: 100000,
+                                numBytesRequested: 512 / 8));
+
+      
+
+
                 var newUser = new User()
                 {
                     Id = 0,
                     Username = user.Username,
                     Email = user.Email,
-                    Password = user.Password
+                    Password = hashed,
+                    Salt = saltStr
 
                 };
 
@@ -182,7 +198,16 @@ namespace PresseMots_Web.Controllers
 
             var userFromDb = this._context.Users.Find(user.Id.Value);
 
-            if (user.OldPassword != userFromDb?.Password)
+            var hashed = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                                password: user.OldPassword,
+                                salt: Convert.FromBase64String(userFromDb.Salt),
+                                prf: KeyDerivationPrf.HMACSHA512,
+                                iterationCount: 100000,
+                                numBytesRequested: 512 / 8));
+
+
+
+            if (hashed != userFromDb?.Password)
             {
 
                 ModelState.AddModelError("OldPassword", _localizer["Old password is not validated"]);
@@ -202,9 +227,20 @@ namespace PresseMots_Web.Controllers
             {
                 try
                 {
+                    byte[] salt = RandomNumberGenerator.GetBytes(128 / 8); // divide by 8 to convert bits to bytes
+                    string saltStr = Convert.ToBase64String(salt);
+                    var hashedPassword = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                                        password: user.Password,
+                                        salt: salt,
+                                        prf: KeyDerivationPrf.HMACSHA512,
+                                        iterationCount: 100000,
+                                        numBytesRequested: 512 / 8));
+
+
                     userFromDb.Username = user.Username;
                     userFromDb.Email = user.Email;
-                    userFromDb.Password = user.Password;
+                    userFromDb.Password = hashedPassword;
+                    userFromDb.Salt = saltStr;
 
                     await _context.SaveChangesAsync();
                 }
